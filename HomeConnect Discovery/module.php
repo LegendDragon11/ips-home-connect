@@ -33,7 +33,7 @@ class HomeConnectDiscovery extends IPSModule {
      * @param $opt
      * @return bool|mixed
      */
-    public function tm($opt) {
+    public function tm($opt, $in) {
         switch ($opt) {
             case "auth":
                 try {
@@ -46,7 +46,7 @@ class HomeConnectDiscovery extends IPSModule {
             case "token":
                 try {
                     // refresh token with a button
-                    return getToken("https://api.home-connect.com/security/oauth/token", "35C7EC3372C6EB5FB5378505AB9CE083D80A97713698ACB07B20C6E41E5E2CD5", "EC9B4140CB439DF1BEEE39860141077C92C553AC65FEE729B88B7092B745B1F7");
+                    return getToken("https://simulator.home-connect.com/security/oauth/token", "8CB8468BC84F6E2C6AA1378BAE73BDF9864A32038D8EEF327CBB99936B74848D", "");
                 } catch (Exception $ex) {
                     $this->SetStatus( analyseEX($ex) );
                 }
@@ -55,6 +55,25 @@ class HomeConnectDiscovery extends IPSModule {
                 // shows codes
                 global $data;
                 return "AuthCode: " . getAuthorizeCode() . "  /  Token: " . getAccessToken();
+            case "send":
+                // shows codes
+                global $data;
+                $json = $data;
+
+                $query = json_decode($in, true);
+
+                $json["token"]["access_token"] = $query["access_token"];
+                $json["token"]["refresh_token"] = str_replace( "=", "", urldecode( $query["refresh_token"] ));
+                $json["token"]["id_token"] = $query["id_token"];
+                $json["token"]["expires_in"] = $query["expires_in"];
+
+                $json["token"]["token_type"] = $query["token_type"];
+                $json["token"]["scope"] = $query["scope"];
+                $json["token"]["last_token_call"] = time();
+                $json["authorize"]["code"] = "xy";
+
+                write( $json );
+                break;
             case "reset":
                 // reset the data.json
                 resetData();
@@ -82,7 +101,7 @@ class HomeConnectDiscovery extends IPSModule {
         try {
             // Send information that the token is now ready and after a new refresh the devices will show up
             if ( is_string( $auth_code ) && !is_string( $token ) ) {
-                getToken("https://api.home-connect.com/security/oauth/token", "35C7EC3372C6EB5FB5378505AB9CE083D80A97713698ACB07B20C6E41E5E2CD5", "EC9B4140CB439DF1BEEE39860141077C92C553AC65FEE729B88B7092B745B1F7");
+                getToken("https://simulator.home-connect.com/security/oauth/token", "8CB8468BC84F6E2C6AA1378BAE73BDF9864A32038D8EEF327CBB99936B74848D", "EC9B4140CB439DF1BEEE39860141077C92C553AC65FEE729B88B7092B745B1F7");
                 return [['name' => 'Retry [Refresh]', 'device' => ' ', 'company' => ' ', 'haId' => 'Überprüfe ob du eingeloggt bist/Check if youre logged in', 'connected' => ' ', 'rowColor' => '#ff0000']];
             }
             // else get device list:
@@ -130,8 +149,8 @@ class HomeConnectDiscovery extends IPSModule {
                         $module = "{0276BAFD-1B64-97DC-AFED-9B7562C35491}";
                         break;
                     default:
-                        echo 'NO MODULE FOUND  ';
-                        $module = '{}';
+                        // TODO: correct error
+                        $module = '{CCE508B4-7A15-4541-06B0-03C9DA28A5F1}';
                         break;
                 }
 
@@ -187,13 +206,13 @@ class HomeConnectDiscovery extends IPSModule {
             [
                 "type" => "Button",
                 "caption" => "Logout",
-                "onClick" => 'HomeConnectDiscovery_tm( $id, "reset" );',
+                "onClick" => 'HomeConnectDiscovery_tm( $id, "reset", " );',
                 'confirm' => 'Bist du sicher, dass du dich ausloggen willst.'
             ],
             [
                 "type" => "Button",
                 "caption" => "Login",
-                "onClick" => 'HomeConnectDiscovery_tm( $id, "auth" );',
+                "onClick" => 'HomeConnectDiscovery_tm( $id, "auth, "" );',
             ]
         ];
     }

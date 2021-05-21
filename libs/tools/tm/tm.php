@@ -140,7 +140,7 @@ function getToken( $url, $client_id, $client_secret ) {
             "grant_type" => "authorization_code",
             "client_id" => $client_id,
             "client_secret" => $client_secret,
-            "redirect_uri" => "http://localhost:8080",
+            "redirect_uri" => "https://api-docs.home-connect.com/quickstart/",
             "code" => getAuthorizeCode()
         ];
 
@@ -217,7 +217,7 @@ function refreshToken( $url, $client_id, $client_secret, $scope ) {
             "grant_type" => "refresh_token",
             "client_id" => $client_id,
             "client_secret" => $client_secret,
-            "redirect_uri" => "http://localhost:8080",
+            "redirect_uri" => "https://api-docs.home-connect.com/quickstart/",
             "refresh_token" => $data["token"]["refresh_token"],
             "scope" => $scope
         ];

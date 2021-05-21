@@ -82,6 +82,7 @@ class HomeConnectDryer extends IPSModule {
           $this->EnableAction('start_stop');
           $this->EnableAction('mode');
           $this->EnableAction('option');
+          $this->EnableAction('state');
 
           // Set Hide, the user can link the instance with no unimportant info
           IPS_SetHidden($this->GetIDForIdent("remoteControl"), true);
@@ -104,6 +105,17 @@ class HomeConnectDryer extends IPSModule {
       public function RequestAction($Ident, $Value)
       {
           switch ($Ident) {
+              case 'state':
+                  if ($this->GetValue("state") < 3) {
+                      if ($Value) {
+                          $this->SetActive(true);
+                          $this->SetValue('state', 1);
+                      } else {
+                          $this->SetActive(false);
+                          $this->SetValue('state', 0);
+                      }
+                  }
+                  break;
               case 'mode':
                   $this->SetValue('mode', $Value);
                   break;
@@ -277,7 +289,7 @@ class HomeConnectDryer extends IPSModule {
      * @param string $mode Mode
      * @param string $option Delay in seconds until the device starts
      * @throws Exception
-     */
+     */ //TODO: check right command
       public function start( string $mode, string $option ) {
           // log
           $this->_log( "Trying to start Device..." );
@@ -389,6 +401,28 @@ class HomeConnectDryer extends IPSModule {
           }
       }
 
+    /**
+     * Function to turn the dishwasher on
+     * @param bool $state switch
+     */
+      public function SetActive( bool $state ) {
+          if ( $state ) {
+              // power on string for HomeConnect
+              $power = '{"data": {"key": "BSH.Common.Setting.PowerState","value": "BSH.Common.EnumType.PowerState.On","type": "BSH.Common.EnumType.PowerState"}}';
+          } else {
+              // power off string for HomeConnect
+              $power = '{"data": {"key": "BSH.Common.Setting.PowerState","value": "BSH.Common.EnumType.PowerState.Off","type": "BSH.Common.EnumType.PowerState"}}';}
+
+          try {
+              Api_put("homeappliances/" . $this->ReadPropertyString("haId") . "/settings/BSH.Common.Setting.PowerState", $power);
+              // log
+              $this->_log("Send On/off State to HomeConnect" );
+          } catch (Exception $ex) {
+              // log
+              $this->_log("Failed to send Device state" );
+              $this->SetStatus( analyseEX($ex) );
+          }
+      }
 
       public function test( $type ) {
           switch ($type) {
