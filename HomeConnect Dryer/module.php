@@ -82,7 +82,6 @@ class HomeConnectDryer extends IPSModule {
           $this->EnableAction('start_stop');
           $this->EnableAction('mode');
           $this->EnableAction('option');
-          $this->EnableAction('state');
 
           // Set Hide, the user can link the instance with no unimportant info
           IPS_SetHidden($this->GetIDForIdent("remoteControl"), true);
@@ -105,17 +104,6 @@ class HomeConnectDryer extends IPSModule {
       public function RequestAction($Ident, $Value)
       {
           switch ($Ident) {
-              case 'state':
-                  if ($this->GetValue("state") < 3) {
-                      if ($Value) {
-                          $this->SetActive(true);
-                          $this->SetValue('state', 1);
-                      } else {
-                          $this->SetActive(false);
-                          $this->SetValue('state', 0);
-                      }
-                  }
-                  break;
               case 'mode':
                   $this->SetValue('mode', $Value);
                   break;
@@ -289,7 +277,7 @@ class HomeConnectDryer extends IPSModule {
      * @param string $mode Mode
      * @param string $option Delay in seconds until the device starts
      * @throws Exception
-     */ //TODO: check right command
+     */
       public function start( string $mode, string $option ) {
           // log
           $this->_log( "Trying to start Device..." );
@@ -401,42 +389,6 @@ class HomeConnectDryer extends IPSModule {
           }
       }
 
-    /**
-     * Function to turn the dishwasher on
-     * @param bool $state switch
-     */
-      public function SetActive( bool $state ) {
-          if ( $state ) {
-              // power on string for HomeConnect
-              $power = '{"data": {"key": "BSH.Common.Setting.PowerState","value": "BSH.Common.EnumType.PowerState.On","type": "BSH.Common.EnumType.PowerState"}}';
-          } else {
-              // power off string for HomeConnect
-              $power = '{"data": {"key": "BSH.Common.Setting.PowerState","value": "BSH.Common.EnumType.PowerState.Off","type": "BSH.Common.EnumType.PowerState"}}';}
-
-          try {
-              Api_put("homeappliances/" . $this->ReadPropertyString("haId") . "/settings/BSH.Common.Setting.PowerState", $power);
-              // log
-              $this->_log("Send On/off State to HomeConnect" );
-          } catch (Exception $ex) {
-              // log
-              $this->_log("Failed to send Device state" );
-              $this->SetStatus( analyseEX($ex) );
-          }
-      }
-
-      public function test( $type ) {
-          switch ($type) {
-              // sending handy test message with ips function
-              case "handy_message":
-                  WFC_PushNotification( $this->ReadPropertyInteger("notify_instance"), "HomeConnect", "Test Message", $this->ReadPropertyString("notify_sound"), $this->InstanceID );
-                  break;
-              // sending web message with ips function
-              case "web_message":
-                  WFC_SendNotification( $this->ReadPropertyInteger("web_notify_instance"), "HomeConnect", "Test Message", "Power", $this->ReadPropertyInteger("web_notify_Timeout") );
-                  break;
-          }
-      }
-
     //-----------------------------------------------------< Profiles >------------------------------
       /** This Function will register all Profiles for the Module
        */
@@ -446,8 +398,7 @@ class HomeConnectDryer extends IPSModule {
               IPS_CreateVariableProfile('HC_State', 1);
               IPS_SetVariableProfileIcon('HC_State', 'Power');
               IPS_SetVariableProfileValues("HC_State", 0, 2, 0 );
-              IPS_SetVariableProfileAssociation("HC_State", 0, "Aus", "", 0x828282 );
-              IPS_SetVariableProfileAssociation("HC_State", 1, "An", "", 0x22ff00 );
+              IPS_SetVariableProfileAssociation("HC_State", 1, "Standby", "", 0x22ff00 );
               IPS_SetVariableProfileAssociation("HC_State", 2, "Verzögerter Start", "", 0xfa8e00 );
               IPS_SetVariableProfileAssociation("HC_State", 3, "Program läuft", "", 0xfa3200 );
           }

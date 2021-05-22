@@ -93,7 +93,7 @@ Im Code kann das Programm mit ... gestoppt werden.
 ```php
 try {
      // try to start the device
-     HCOven_stop( instanceID );
+     HCDishwasher_stop( instanceID );
 
 } catch(Exception $ex) {
 
